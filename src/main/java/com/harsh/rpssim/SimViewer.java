@@ -4,12 +4,8 @@
  */
 package com.harsh.rpssim;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.util.List;
-import javax.swing.ImageIcon;
 import javax.swing.SwingWorker;
-import javax.swing.Timer;
 
 /**
  *
