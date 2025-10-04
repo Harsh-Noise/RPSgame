@@ -4,14 +4,7 @@
  */
 package com.harsh.rpssim;
 
-import com.madgag.gif.fmsware.AnimatedGifEncoder;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
-import javax.imageio.ImageIO;
 import java.util.concurrent.*;
 
 /**
@@ -25,29 +18,15 @@ interface ProgressListener {
 
 public class RPSSim{ 
     static final int BOARDSIZE = 720;
-    static int CREATURENUMBER = 99;
     static final int BASEMOVEMENTSPEED = 100;
-    static double MOVEMENTSPEED = 2;  //units per second
-    static int THREADS = 16;
+    static final int THREADS = 16;
     
-    static int simTimeCount = 0;
+    static double movementSpeed = 2;  //units per second
+    static int creatureNumber = 99;
     static long simTime = 0;    //Milliseconds per turn
     
     static ExecutorService executor = Executors.newFixedThreadPool(THREADS);
     static Random rand = new Random();
-    static AnimatedGifEncoder gif = new AnimatedGifEncoder();
-    
-    //Variables edited by the algorithm
-    //Subimage size for each thread
-    //static int startPoint = 0;
-    //static int endPoint = 0;
-
-    //Counters for threads
-    static volatile double loadBarChunks = 0.0;
-    
-//    static ArrayList<double[]> rocks = new ArrayList<double[]>();
-//    static ArrayList<double[]> papers = new ArrayList<double[]>();
-//    static ArrayList<double[]> scissors = new ArrayList<double[]>();
     
     static volatile Creature[] players;
 
@@ -60,14 +39,14 @@ public class RPSSim{
     }
 
     public int getCREATURENUMBER() {
-        return (CREATURENUMBER);
+        return (creatureNumber);
     }
     
     public void setCreatureNumber(int x){
-        CREATURENUMBER = x;
+        creatureNumber = x;
     }
     public double getMOVEMENTSPEED() {
-        return (MOVEMENTSPEED);
+        return (movementSpeed);
     }
 
     public int getTHREADS() {
@@ -85,20 +64,16 @@ public class RPSSim{
     }
     
     public void initialize(){
-        simTimeCount= 0;
         simTime = 0;    //Milliseconds per turn
         
-        players = new Creature[CREATURENUMBER];
-        for(int x = 0; x < (CREATURENUMBER); x++){
+        players = new Creature[creatureNumber];
+        for(int x = 0; x < (creatureNumber); x++){
             players[x] = new Creature(rand.nextDouble() * BOARDSIZE, rand.nextDouble() * BOARDSIZE, x%3);
         }
     }
     
     public static void updateMoveSpeed(){
-        //System.out.println("In updateMoveSpeed");
-        //System.out.println(simTime + ", " + simTimeCount + ", " + 1000 + ", " + BASEMOVEMENTSPEED);
-        //MOVEMENTSPEED = (((simTime/simTimeCount) / 1000.0) * BASEMOVEMENTSPEED); //speed (units/turn) = (avg ms/turn)(1s/1000ms)(units/second)
-        MOVEMENTSPEED = ((simTime / 1000.0) * BASEMOVEMENTSPEED); //speed (units/turn) = (ms/turn)(1s/1000ms)(units/second)
+        movementSpeed = ((simTime / 1000.0) * BASEMOVEMENTSPEED); //speed (units/turn) = (ms/turn)(1s/1000ms)(units/second)
     }
     
     public String playerToString(int location){
@@ -117,7 +92,7 @@ public class RPSSim{
     
     public Integer[] getNumTeams(){
         //System.out.println("In getNumTeams");
-        //System.out.println(CREATURENUMBER + ", " + players.length + ", " + playerToString(0));
+        //System.out.println(creatureNumber + ", " + players.length + ", " + playerToString(0));
         Integer[] returnArray = new Integer[3];
         returnArray[0] = 0;
         returnArray[1] = 0;
@@ -148,12 +123,12 @@ public class RPSSim{
         double angle = getAngle(source, target);
 
         if (isFlee) {
-            double newX = (source.getXCoords() - (Math.cos(angle) * MOVEMENTSPEED));
-            double newY = (source.getYCoords() - (Math.sin(angle) * MOVEMENTSPEED));
+            double newX = (source.getXCoords() - (Math.cos(angle) * movementSpeed));
+            double newY = (source.getYCoords() - (Math.sin(angle) * movementSpeed));
             return(new Creature(Math.max(Math.min(newX, BOARDSIZE), 0), Math.max(Math.min(newY, BOARDSIZE), 0), source.getTeam()));
         }
-        double newX = (source.getXCoords() + (Math.cos(angle) * MOVEMENTSPEED));
-        double newY = (source.getYCoords() + (Math.sin(angle) * MOVEMENTSPEED));
+        double newX = (source.getXCoords() + (Math.cos(angle) * movementSpeed));
+        double newY = (source.getYCoords() + (Math.sin(angle) * movementSpeed));
         return (new Creature(Math.max(Math.min(newX, BOARDSIZE), 0), Math.max(Math.min(newY, BOARDSIZE), 0), source.getTeam()));
     }
     
@@ -190,7 +165,7 @@ public class RPSSim{
                     }
                 }
                 
-                if (flightDistance < Math.pow(MOVEMENTSPEED, 2)) { //if capture
+                if (flightDistance < Math.pow(movementSpeed, 2)) { //if capture
                     creature.setTeam(1);
                     return(moveCreature(creature, flightTarget, true));
                     //System.out.println("Captured!");
@@ -232,7 +207,7 @@ public class RPSSim{
                     }
                 }
 
-                if (flightDistance < Math.pow(MOVEMENTSPEED, 2)) { //if capture
+                if (flightDistance < Math.pow(movementSpeed, 2)) { //if capture
                     creature.setTeam(2);
                     return (moveCreature(creature, flightTarget, true));
                     //System.out.println("Captured!");
@@ -274,7 +249,7 @@ public class RPSSim{
                     }
                 }
 
-                if (flightDistance < Math.pow(MOVEMENTSPEED, 2)) { //if capture
+                if (flightDistance < Math.pow(movementSpeed, 2)) { //if capture
                     creature.setTeam(0);
                     return(moveCreature(creature, flightTarget, true));
                     //System.out.println("Captured!");
@@ -309,18 +284,9 @@ public class RPSSim{
             listener.onProgressUpdate(getNumTeams()); // Notify progress
         }
         
-        /*
-        if (THREADS > CREATURENUMBER) {
-            THREADS = CREATURENUMBER;
-        } else {
-            THREADS = 16;
-        }
-        */
-        
         long start =  System.currentTimeMillis();
         
-        //double subImageSize = (double) imageSize / threads;
-        double threadLoad = (double) CREATURENUMBER/THREADS; //cover 1/4 the img
+        double threadLoad = (double) creatureNumber/THREADS; //cover 1/4 the img
         Future<?>[] futures = new Future<?>[THREADS];
         
         //Loop for starting threads
@@ -329,8 +295,8 @@ public class RPSSim{
         for (int x = 0; x < THREADS; x++) {
             int startPoint = (int) (x * threadLoad);
             int endPoint = (int) ((x + 1) * threadLoad);
-            if (CREATURENUMBER - endPoint < threadLoad) {
-                endPoint = CREATURENUMBER;
+            if (creatureNumber - endPoint < threadLoad) {
+                endPoint = creatureNumber;
             }
             //System.out.println("Thread working on " + startPoint + ", " + endPoint);
             //hacky final copy because executor gets cranky
@@ -355,11 +321,9 @@ public class RPSSim{
         
         
         //System.out.println("updating speed");
-        //simTime += System.currentTimeMillis() - start;
         simTime = System.currentTimeMillis() - start;
-        simTimeCount++;
         updateMoveSpeed();
-        //System.out.println("New movement speed = " + MOVEMENTSPEED);
+        //System.out.println("New movement speed = " + movementSpeed);
         
         //System.out.println("Returning");
         return(players);
@@ -374,40 +338,5 @@ public class RPSSim{
         sim.initialize();
         System.out.println(sim.getCREATURENUMBER());
         
-        /*
-        sim.initialize();
-        
-        gif.setBackground(Color.WHITE);
-        gif.setQuality(1);
-        gif.start("output.gif");
-        gif.setDelay(100); // ms between frames
-        gif.setRepeat(0);  // infinite loop
-
-        int frames = 0;
-        double start = (double) System.currentTimeMillis();
-
-        //while(!sim.isOver()){
-        for (int x = 0; x < 100; x++) {
-            gif.addFrame(sim.distributeThreads());
-            frames++;
-            //System.out.println("FPS/B = " + ((double)frames)/(((double)System.currentTimeMillis()-start)/1000.0));
-        }
-        
-        gif.addFrame(sim.getImage());
-        
-        System.out.println("FPS = " + ((double) frames) / ((((double) System.currentTimeMillis() - start) / 1000.0)));
-        
-        gif.finish();
-        
-        System.out.println("all done!");
-        
-        painter.shutDown();
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException ex) {
-            System.getLogger(RPSSim.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-*/
     }
 }
