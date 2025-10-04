@@ -8,15 +8,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <exec.mainClass>com.harsh.rpssim.RPSSim</exec.mainClass>
+        <exec.mainClass>com.harsh.rpssim.SimViewer</exec.mainClass>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>com.madgag</groupId>
-            <artifactId>animated-gif-lib</artifactId>
-            <version>1.4</version>
-        </dependency>
-    </dependencies>
     <build>
         <plugins>
             <plugin>
